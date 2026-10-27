@@ -1,0 +1,34 @@
+---
+source: crates/ruff/tests/cli/lint.rs
+info:
+  program: ruff
+  args:
+    - check
+    - "--no-cache"
+    - "--output-format"
+    - full
+    - app.py
+---
+success: false
+exit_code: 1
+----- stdout -----
+plugin-error: Plugin `http` failed: Object of type `function` has no attribute `attr` (at lint/http.star:6)
+ --> app.py:4:1
+  |
+2 | import requests
+3 |
+4 | requests.get("https://example.com")
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5 | requests.post("https://example.com")
+  |
+info: error: Object of type `function` has no attribute `attr`
+ --> [TMP]/lint/http.star:6:8
+  |
+6 |     if call.func.attr == "get":
+  |        ^^^^^^^^^^^^^^
+  |
+help: Fields that hold nodes are methods, so call them: `call.func().attr`, not `call.func.attr`
+
+Found 1 error.
+
+----- stderr -----

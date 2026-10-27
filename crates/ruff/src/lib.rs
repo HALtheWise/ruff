@@ -78,7 +78,8 @@ fn change_detected(event: &notify::Event) -> Option<ChangeKind> {
     for path in &event.paths {
         if let Some(suffix) = path.extension() {
             match suffix.to_str() {
-                Some("toml") => {
+                // Plugins (`.star` files) are part of the configuration.
+                Some("toml" | "star") => {
                     return Some(ChangeKind::Configuration);
                 }
                 Some("py" | "pyi" | "pyw" | "ipynb") => source_file = true,

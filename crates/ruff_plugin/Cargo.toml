@@ -1,0 +1,38 @@
+[package]
+name = "ruff_plugin"
+version = "0.0.19"
+description = "This is an internal component crate of Ruff"
+publish = false
+authors = { workspace = true }
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+documentation = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+
+[dependencies]
+ruff_cache = { workspace = true }
+ruff_diagnostics = { workspace = true }
+ruff_python_ast = { workspace = true }
+ruff_python_trivia = { workspace = true }
+ruff_python_stdlib = { workspace = true }
+ruff_source_file = { workspace = true }
+ruff_text_size = { workspace = true }
+
+allocative = { workspace = true }
+anyhow = { workspace = true }
+globset = { workspace = true }
+regex = { workspace = true }
+rustc-hash = { workspace = true }
+smallvec = { workspace = true }
+starlark = { workspace = true }
+
+[dev-dependencies]
+insta = { workspace = true }
+
+[lints]
+workspace = true
+
+[lib]
+doctest = false

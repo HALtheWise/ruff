@@ -370,6 +370,11 @@ impl<T> PerFile<T> {
 pub struct PerFileIgnore(PerFile<Vec<UnresolvedRuleSelector>>);
 
 impl PerFileIgnore {
+    /// The selectors of the rules to ignore.
+    pub fn selectors(&self) -> &[UnresolvedRuleSelector] {
+        &self.0.data
+    }
+
     pub fn new(
         pattern: String,
         selectors: Vec<UnresolvedRuleSelector>,

@@ -22,6 +22,7 @@ ruff_db = { workspace = true }
 ruff_formatter = { workspace = true }
 ruff_graph = { workspace = true, features = ["serde", "schemars"] }
 ruff_linter = { workspace = true }
+ruff_plugin = { workspace = true }
 ruff_macros = { workspace = true }
 ruff_options_metadata = { workspace = true }
 ruff_python_ast = { workspace = true }

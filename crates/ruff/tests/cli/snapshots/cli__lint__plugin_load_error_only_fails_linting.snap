@@ -1,0 +1,15 @@
+---
+source: crates/ruff/tests/cli/lint.rs
+info:
+  program: ruff
+  args:
+    - format
+    - "--no-cache"
+    - app.py
+---
+success: true
+exit_code: 0
+----- stdout -----
+1 file left unchanged
+
+----- stderr -----

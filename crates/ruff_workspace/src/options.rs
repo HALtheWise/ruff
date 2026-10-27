@@ -4,7 +4,7 @@ use rustc_hash::{FxBuildHasher, FxHashMap, FxHashSet};
 use serde::de::{self};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use strum::IntoEnumIterator;
 use unicode_normalization::UnicodeNormalization;
@@ -40,6 +40,7 @@ use ruff_linter::settings::types::{
 use ruff_linter::{UnresolvedRuleSelector, warn_user_once};
 use ruff_macros::{CacheKey, CombineOptions, OptionsMetadata};
 use ruff_options_metadata::{OptionsMetadata, Visit};
+use ruff_plugin::{OptionValue, PluginSpec};
 use ruff_python_ast::name::Name;
 use ruff_python_formatter::{DocstringCodeLineWidth, QuoteStyle};
 use ruff_python_semantic::NameImports;
@@ -612,6 +613,139 @@ pub struct LintOptions {
         "#
     )]
     pub future_annotations: Option<bool>,
+
+    /// Lint rules defined in [Starlark](https://github.com/bazelbuild/starlark) plugins. See
+    /// [Plugins](https://docs.astral.sh/ruff/plugins/) for how to write them.
+    ///
+    /// Each entry maps a plugin name to the path of the plugin's `.star` file, or to a table with
+    /// the file's `path` and the plugin's `options`. Paths are relative to the project root. The
+    /// rules of every listed plugin are enabled, and can be suppressed with `# noqa` comments like
+    /// any other rule.
+    ///
+    /// Plugins are a preview feature, and require [`preview`](#lint_preview) to be enabled.
+    #[option(
+        default = "{}",
+        value_type = "dict[str, str | PluginTable]",
+        scope = "plugins",
+        example = r#"
+            acme = "lint/acme.star"
+            layers = { path = "lint/layers.star", options = { layers = ["app.api", "app.domain"] } }
+        "#
+    )]
+    pub plugins: Option<BTreeMap<String, PluginOptions>>,
+}
+
+/// A plugin: the path to its Starlark file, or a table with the path and the plugin's options.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[serde(untagged)]
+pub enum PluginOptions {
+    Path(String),
+    Table(PluginTable),
+}
+
+/// Deserializes a plugin by hand, rather than with `#[serde(untagged)]`, whose error for a value
+/// of the wrong shape doesn't say what was expected.
+impl<'de> Deserialize<'de> for PluginOptions {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct Visitor;
+
+        impl<'de> de::Visitor<'de> for Visitor {
+            type Value = PluginOptions;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str(
+                    "the path to a plugin's file, or a table like `{ path = \"...\", options = { ... } }`",
+                )
+            }
+
+            fn visit_str<E: de::Error>(self, path: &str) -> Result<Self::Value, E> {
+                Ok(PluginOptions::Path(path.to_string()))
+            }
+
+            fn visit_map<A: de::MapAccess<'de>>(self, map: A) -> Result<Self::Value, A::Error> {
+                PluginTable::deserialize(de::value::MapAccessDeserializer::new(map))
+                    .map(PluginOptions::Table)
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
+impl PluginOptions {
+    pub(crate) fn into_spec(self, name: String, project_root: &Path) -> PluginSpec {
+        let (path, options) = match self {
+            PluginOptions::Path(path) => (path, BTreeMap::new()),
+            PluginOptions::Table(PluginTable { path, options }) => (path, options),
+        };
+        PluginSpec {
+            name,
+            path: project_root.join(path),
+            root: project_root.to_path_buf(),
+            options: options
+                .into_iter()
+                .map(|(key, value)| (key, value.into_option_value()))
+                .collect(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[serde(deny_unknown_fields)]
+pub struct PluginTable {
+    /// The path to the plugin's Starlark file.
+    pub path: String,
+    /// The plugin's options, which the plugin reads with `option(...)`.
+    #[serde(default)]
+    pub options: BTreeMap<String, PluginOptionValue>,
+}
+
+/// The value of a plugin option, which can be any TOML value.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct PluginOptionValue(toml::Value);
+
+// Options must be `Eq`. TOML values are only `PartialEq` because of floats, which plugin options
+// rarely use and never compare.
+impl Eq for PluginOptionValue {}
+
+impl PluginOptionValue {
+    fn into_option_value(self) -> OptionValue {
+        fn convert(value: toml::Value) -> OptionValue {
+            match value {
+                toml::Value::String(value) => OptionValue::String(value),
+                toml::Value::Integer(value) => OptionValue::Int(value),
+                toml::Value::Float(value) => OptionValue::Float(value),
+                toml::Value::Boolean(value) => OptionValue::Bool(value),
+                toml::Value::Datetime(value) => OptionValue::String(value.to_string()),
+                toml::Value::Array(values) => {
+                    OptionValue::Array(values.into_iter().map(convert).collect())
+                }
+                toml::Value::Table(table) => OptionValue::Table(
+                    table
+                        .into_iter()
+                        .map(|(key, value)| (key, convert(value)))
+                        .collect(),
+                ),
+            }
+        }
+        convert(self.0)
+    }
+}
+
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for PluginOptionValue {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        std::borrow::Cow::Borrowed("PluginOptionValue")
+    }
+
+    fn json_schema(_generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "description": "Any TOML value."
+        })
+    }
 }
 
 pub(crate) fn validate_required_version(required_version: &RequiredVersion) -> anyhow::Result<()> {
@@ -4468,6 +4602,7 @@ pub struct LintOptionsWire {
     preview: Option<bool>,
     typing_extensions: Option<bool>,
     future_annotations: Option<bool>,
+    plugins: Option<BTreeMap<String, PluginOptions>>,
 }
 
 impl From<LintOptionsWire> for LintOptions {
@@ -4524,6 +4659,7 @@ impl From<LintOptionsWire> for LintOptions {
             preview,
             typing_extensions,
             future_annotations,
+            plugins,
         } = value;
 
         LintOptions {
@@ -4581,6 +4717,7 @@ impl From<LintOptionsWire> for LintOptions {
             preview,
             typing_extensions,
             future_annotations,
+            plugins,
         }
     }
 }

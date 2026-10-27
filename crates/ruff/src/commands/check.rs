@@ -44,6 +44,7 @@ pub(crate) fn check(
     let start = Instant::now();
     let (mut paths, resolver) = project_files_in_path(files, pyproject_config, config_arguments)?;
     debug!("Identified files to lint in: {:?}", start.elapsed());
+    super::check_plugins_loaded(&resolver)?;
 
     // Filter out paths for file types not supported for linting
     paths.retain(|path| {

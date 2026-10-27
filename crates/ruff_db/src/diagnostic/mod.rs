@@ -1105,6 +1105,9 @@ pub enum DiagnosticId {
     ///
     /// This indicates a bug in the program rather than a user error.
     InternalError,
+
+    /// A lint plugin raised an error while checking a file.
+    PluginError,
 }
 
 impl DiagnosticId {
@@ -1158,6 +1161,7 @@ impl DiagnosticId {
             DiagnosticId::InvalidCliOption => "invalid-cli-option",
             DiagnosticId::PreviewFeature => "preview-feature",
             DiagnosticId::InternalError => "internal-error",
+            DiagnosticId::PluginError => "plugin-error",
         }
     }
 

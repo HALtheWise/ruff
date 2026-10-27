@@ -23,6 +23,10 @@ use crate::warn_user_once_by_message;
 pub struct UnresolvedRuleSelector(RangedValue<String>);
 
 impl UnresolvedRuleSelector {
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+
     pub fn resolve(&self, preview: PreviewMode) -> Result<RuleSelector, RuleResolutionError> {
         let selector = self.0.as_str();
 

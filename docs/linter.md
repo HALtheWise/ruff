@@ -21,6 +21,9 @@ $ ruff check path/to/code/    # Lint files in `path/to/code`.
 
 For the full list of supported options, run `ruff check --help`.
 
+Projects can also add rules of their own, written in Starlark, with [plugins](plugins.md) (in
+[preview](preview.md)).
+
 ## Rule selection
 
 The set of enabled rules is controlled via the [`lint.select`](settings.md#lint_select),

@@ -1,0 +1,22 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+TODO001 Link this TODO to a ticket, like `TODO(ABC-123): ...`
+ --> todo_tickets.py:1:1
+  |
+1 | # TODO: remove this
+  | ^^^^^^^^^^^^^^^^^^^
+2 | # TODO(ABC-123): remove this
+3 | x = 1  # FIXME handle overflow
+  |
+
+TODO001 Link this TODO to a ticket, like `TODO(ABC-123): ...`
+ --> todo_tickets.py:3:8
+  |
+1 | # TODO: remove this
+2 | # TODO(ABC-123): remove this
+3 | x = 1  # FIXME handle overflow
+  |        ^^^^^^^^^^^^^^^^^^^^^^^
+4 | y = 2  # FIXME(PAY-42): handle overflow
+5 | # This is not a todo, just a mention of todos.
+  |

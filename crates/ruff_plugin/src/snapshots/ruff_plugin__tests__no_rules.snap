@@ -1,0 +1,5 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: "load_error(\"calls().foreach(lambda node: None)\")"
+---
+Plugin `test` doesn't define any rules; define one with `rule("CODE001", "rule-name")`

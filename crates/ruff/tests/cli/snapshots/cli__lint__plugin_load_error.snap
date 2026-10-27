@@ -1,0 +1,24 @@
+---
+source: crates/ruff/tests/cli/lint.rs
+info:
+  program: ruff
+  args:
+    - check
+    - "--no-cache"
+    - "--output-format"
+    - concise
+    - app.py
+---
+success: false
+exit_code: 2
+----- stdout -----
+
+----- stderr -----
+ruff failed
+  Cause: Failed to load plugin `http`:
+error: Variable `cals` not found, did you mean `calls`?
+ --> [TMP]/lint/http.star:3:1
+  |
+3 | cals("requests.*").foreach(lambda call: TIMEOUT.report(call, "No timeout"))
+  | ^^^^
+  |

@@ -36,6 +36,7 @@ ruff_python_formatter = { version = "0.0.19", path = "crates/ruff_python_formatt
 ruff_python_importer = { version = "0.0.19", path = "crates/ruff_python_importer" }
 ruff_python_index = { version = "0.0.19", path = "crates/ruff_python_index" }
 ruff_python_literal = { version = "0.0.19", path = "crates/ruff_python_literal" }
+ruff_plugin = { version = "0.0.19", path = "crates/ruff_plugin" }
 ruff_python_parser = { version = "0.0.19", path = "crates/ruff_python_parser" }
 ruff_python_semantic = { version = "0.0.19", path = "crates/ruff_python_semantic" }
 ruff_python_stdlib = { version = "0.0.19", path = "crates/ruff_python_stdlib" }
@@ -70,6 +71,9 @@ aho-corasick = { version = "1.1.3", default-features = false, features = ["perf-
 arrayvec = { version = "0.7.6", default-features = false }
 anstream = { version = "1.0.0", default-features = false, features = ["auto", "wincon"] }
 anstyle = { version = "1.0.10", default-features = false, features = ["std"] }
+# Pinned exactly: `starlark` 0.13 needs `allocative` to support its version of `hashbrown`,
+# which later versions of `allocative` (from 0.3.6) no longer do.
+allocative = { version = "=0.3.5", default-features = false }
 anyhow = { version = "1.0.80", default-features = false, features = ["std"] }
 arc-swap = { version = "1.7.1", default-features = false }
 argfile = { version = "1.0.0", default-features = false }
@@ -208,6 +212,9 @@ serde_json = { version = "1.0.113", default-features = false, features = ["std"]
 serde_test = { version = "1.0.152", default-features = false }
 shellexpand = { version = "3.0.0", default-features = false, features = ["base-0", "tilde"] }
 similar = { version = "3.0.0", default-features = false, features = ["inline", "std", "text"] }
+# starlark 0.14 enables `serde_json`'s `arbitrary_precision` feature, which changes how every crate in
+# the workspace serializes JSON numbers to other formats (and deserializes them into untagged enums).
+starlark = { version = "0.13.0", default-features = false }
 smallvec = { version = "1.13.2", default-features = false, features = ["union", "const_generics", "const_new"] }
 snapbox = { version = "1.0.0", default-features = false, features = [
     "color-auto",

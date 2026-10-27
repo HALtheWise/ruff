@@ -1,0 +1,36 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+FLAG001 [*] The feature flag `new-checkout` has launched, so this check is always `True`
+ --> feature_flags.py:4:4
+  |
+2 | from acme.flags import is_enabled
+3 |
+4 | if flags.is_enabled("new-checkout"):
+  |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5 |     pass
+  |
+help: Replace with `True`
+  |
+3 |
+  - if flags.is_enabled("new-checkout"):
+4 + if True:
+5 |     pass
+  |
+
+FLAG002 [*] The feature flag `legacy-search` was removed, so this check is always `False`
+ --> feature_flags.py:7:4
+  |
+5 |     pass
+6 |
+7 | if is_enabled(name="legacy-search", user=None):
+  |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8 |     pass
+  |
+help: Replace with `False`
+  |
+6 |
+  - if is_enabled(name="legacy-search", user=None):
+7 + if False:
+8 |     pass
+  |

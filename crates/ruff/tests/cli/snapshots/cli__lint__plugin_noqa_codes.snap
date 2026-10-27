@@ -1,0 +1,20 @@
+---
+source: crates/ruff/tests/cli/lint.rs
+info:
+  program: ruff
+  args:
+    - check
+    - "--no-cache"
+    - "--output-format"
+    - concise
+    - app.py
+---
+success: false
+exit_code: 1
+----- stdout -----
+app.py:5:38: unused-noqa: [*] Unused `noqa` directive (non-enabled: `E501`)
+app.py:6:49: unused-noqa: [*] Unused `noqa` directive (unused: `HTTP001`)
+Found 2 errors.
+[*] 2 fixable with `--fix`.
+
+----- stderr -----

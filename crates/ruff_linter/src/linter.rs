@@ -617,7 +617,8 @@ pub fn lint_fix<'a>(
                         path,
                         transformed.source_code(),
                         error,
-                        fixed.identifiers(),
+                        &fixed.identifiers().collect::<Vec<_>>(),
+                        settings,
                     );
                     return Err(anyhow!("Fix introduced a syntax error"));
                 }
@@ -646,7 +647,12 @@ pub fn lint_fix<'a>(
                 continue;
             }
 
-            report_failed_to_converge_error(path, transformed.source_code(), &diagnostics);
+            report_failed_to_converge_error(
+                path,
+                transformed.source_code(),
+                &diagnostics,
+                settings,
+            );
         }
 
         return Ok(FixerResult {
@@ -667,14 +673,50 @@ where
     rules.into_iter().sorted_unstable().dedup().join(", ")
 }
 
+/// The names of the plugins that define any of the rules with the given codes. A fix that fails
+/// because of a plugin rule is a bug in the plugin, rather than in Ruff.
+fn plugins_of<'a>(settings: &LinterSettings, codes: impl IntoIterator<Item = &'a str>) -> String {
+    let mut plugins: Vec<&str> = codes
+        .into_iter()
+        .filter_map(|code| {
+            settings
+                .plugins
+                .rules()
+                .find(|rule| rule.code == code || rule.name == code)
+        })
+        .map(|rule| rule.plugin.as_str())
+        .collect();
+    plugins.sort_unstable();
+    plugins.dedup();
+    plugins
+        .iter()
+        .map(|plugin| format!("`{plugin}`"))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
 #[expect(clippy::print_stderr)]
 pub(crate) fn report_failed_to_converge_error(
     path: &Path,
     transformed: &str,
     diagnostics: &[Diagnostic],
+    settings: &LinterSettings,
 ) {
     let codes = collect_rule_codes(diagnostics.iter().map(Diagnostic::secondary_code_or_id));
-    if cfg!(debug_assertions) {
+    let plugins = plugins_of(
+        settings,
+        diagnostics.iter().map(Diagnostic::secondary_code_or_id),
+    );
+    if !plugins.is_empty() {
+        eprintln!(
+            "{}{} Failed to converge after {} iterations in `{}` with rule codes {}. The fixes of plugins (here {plugins}) need to stop reporting a diagnostic once its fix is applied.",
+            "error".red().bold(),
+            ":".bold(),
+            MAX_ITERATIONS,
+            fs::relativize_path(path),
+            codes,
+        );
+    } else if cfg!(debug_assertions) {
         eprintln!(
             "{}{} Failed to converge after {} iterations in `{}` with rule codes {}:---\n{}\n---",
             "debug error".red().bold(),
@@ -705,14 +747,25 @@ This indicates a bug in Ruff. If you could open an issue at:
 }
 
 #[expect(clippy::print_stderr)]
-fn report_fix_syntax_error<'a>(
+fn report_fix_syntax_error(
     path: &Path,
     transformed: &str,
     error: &ParseError,
-    rules: impl IntoIterator<Item = &'a str>,
+    rules: &[&str],
+    settings: &LinterSettings,
 ) {
-    let codes = collect_rule_codes(rules);
-    if cfg!(debug_assertions) {
+    let codes = collect_rule_codes(rules.iter().copied());
+    let plugins = plugins_of(settings, rules.iter().copied());
+    if !plugins.is_empty() {
+        eprintln!(
+            "{}{} Fix introduced a syntax error in `{}` with rule codes {}: {}. Reverting all changes. The fixes of plugins (here {plugins}) need to produce valid code.",
+            "error".red().bold(),
+            ":".bold(),
+            fs::relativize_path(path),
+            codes,
+            error,
+        );
+    } else if cfg!(debug_assertions) {
         eprintln!(
             "{}{} Fix introduced a syntax error in `{}` with rule codes {}: {}\n---\n{}\n---",
             "error".red().bold(),

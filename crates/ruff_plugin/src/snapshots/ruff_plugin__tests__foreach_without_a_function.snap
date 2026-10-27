@@ -1,0 +1,13 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: "load_error(&format!(\"{RULE}calls().foreach(\\\"check\\\")\"))"
+---
+Traceback (most recent call last):
+  * test.star:2, in <module>
+      calls().foreach("check")
+error: `foreach` expects a function, but got a `string`
+ --> test.star:2:1
+  |
+2 | calls().foreach("check")
+  | ^^^^^^^^^^^^^^^^^^^^^^^^
+  |

@@ -1,0 +1,13 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: "load_error(&format!(\"{RULE}calls(\\\"print\\\").foreach(lambda node: None)\"))"
+---
+Traceback (most recent call last):
+  * test.star:2, in <module>
+      calls("print").foreach(lambda node: None)
+error: `print` is not a qualified name; use `builtins.print` to match the builtin
+ --> test.star:2:1
+  |
+2 | calls("print").foreach(lambda node: None)
+  | ^^^^^^^^^^^^^^
+  |

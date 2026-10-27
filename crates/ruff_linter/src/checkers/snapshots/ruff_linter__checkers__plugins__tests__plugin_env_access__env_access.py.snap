@@ -1,0 +1,44 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+ENV001 Read configuration from `app.settings` instead of `os.environ`
+ --> env_access.py:4:9
+  |
+2 | from os import environ, getenv as env
+3 |
+4 | debug = os.environ.get("DEBUG")
+  |         ^^^^^^^^^^
+5 | token = os.environ["TOKEN"]
+6 | home = environ["HOME"]
+  |
+
+ENV001 Read configuration from `app.settings` instead of `os.environ`
+ --> env_access.py:5:9
+  |
+4 | debug = os.environ.get("DEBUG")
+5 | token = os.environ["TOKEN"]
+  |         ^^^^^^^^^^
+6 | home = environ["HOME"]
+7 | port = env("PORT")
+  |
+
+ENV001 Read configuration from `app.settings` instead of `os.environ`
+ --> env_access.py:6:8
+  |
+4 | debug = os.environ.get("DEBUG")
+5 | token = os.environ["TOKEN"]
+6 | home = environ["HOME"]
+  |        ^^^^^^^
+7 | port = env("PORT")
+8 | cwd = os.getcwd()  # OK
+  |
+
+ENV001 Read configuration from `app.settings` instead of `os.getenv`
+ --> env_access.py:7:8
+  |
+5 | token = os.environ["TOKEN"]
+6 | home = environ["HOME"]
+7 | port = env("PORT")
+  |        ^^^
+8 | cwd = os.getcwd()  # OK
+  |

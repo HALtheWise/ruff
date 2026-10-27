@@ -41,6 +41,7 @@ use ruff_linter::{
     RuleSelector, UnresolvedRuleSelector, fs, warn_user_once, warn_user_once_by_id,
     warn_user_once_by_message,
 };
+use ruff_plugin::{PluginSet, PluginSpec};
 use ruff_python_ast as ast;
 use ruff_python_formatter::{
     DocstringCode, DocstringCodeLineWidth, MagicTrailingComma, QuoteStyle,
@@ -318,6 +319,17 @@ impl Configuration {
 
         let future_annotations = lint.future_annotations.unwrap_or_default();
 
+        let plugins = load_plugins(lint.plugins.clone().unwrap_or_default(), lint_preview)
+            .unwrap_or_else(|err| PluginSet::failed(&err));
+        warn_about_plugin_rule_selectors(
+            &lint.rule_selections,
+            lint.per_file_ignores
+                .iter()
+                .flatten()
+                .chain(&lint.extend_per_file_ignores),
+            &plugins,
+        );
+
         Ok(Settings {
             cache_dir: self
                 .cache_dir
@@ -515,6 +527,7 @@ impl Configuration {
                     .unwrap_or_default(),
                 typing_extensions: lint.typing_extensions.unwrap_or(true),
                 future_annotations,
+                plugins,
             },
 
             formatter,
@@ -748,6 +761,7 @@ pub struct LintConfiguration {
     pub typing_modules: Option<Vec<String>>,
     pub typing_extensions: Option<bool>,
     pub future_annotations: Option<bool>,
+    pub plugins: Option<Vec<PluginSpec>>,
 
     // Plugins
     pub flake8_annotations: Option<Flake8AnnotationsOptions>,
@@ -869,6 +883,12 @@ impl LintConfiguration {
             typing_modules: options.common.typing_modules,
             typing_extensions: options.typing_extensions,
             future_annotations: options.future_annotations,
+            plugins: options.plugins.map(|plugins| {
+                plugins
+                    .into_iter()
+                    .map(|(name, plugin)| plugin.into_spec(name, project_root))
+                    .collect()
+            }),
 
             // Plugins
             flake8_annotations: options.common.flake8_annotations,
@@ -1323,6 +1343,16 @@ impl LintConfiguration {
             ruff: self.ruff.combine(config.ruff),
             typing_extensions: self.typing_extensions.or(config.typing_extensions),
             future_annotations: self.future_annotations.or(config.future_annotations),
+            plugins: match (self.plugins, config.plugins) {
+                // Plugins from an extended configuration are kept unless this configuration
+                // redefines a plugin with the same name.
+                (Some(plugins), Some(mut base)) => {
+                    base.retain(|spec| plugins.iter().all(|plugin| plugin.name != spec.name));
+                    base.extend(plugins);
+                    Some(base)
+                }
+                (plugins, base) => plugins.or(base),
+            },
         }
     }
 }
@@ -1750,6 +1780,73 @@ fn warn_about_deprecated_top_level_lint_options(
 }
 
 /// Detect conflicts between I002 (missing-required-import) and ICN001 (unconventional-import-alias)
+/// Warns about rule selectors that name plugin rules, which `select`, `ignore`, and
+/// `per-file-ignores` don't apply to (yet). Ruff also warns that the selectors are unknown, which
+/// doesn't say why.
+fn warn_about_plugin_rule_selectors<'a>(
+    rule_selections: &'a [RuleSelection],
+    per_file_ignores: impl Iterator<Item = &'a PerFileIgnore>,
+    plugins: &PluginSet,
+) {
+    if plugins.is_empty() {
+        return;
+    }
+    let selections = rule_selections.iter().flat_map(|selection| {
+        selection
+            .select
+            .iter()
+            .flatten()
+            .chain(&selection.ignore)
+            .chain(&selection.extend_select)
+            .chain(selection.fixable.iter().flatten())
+            .chain(&selection.unfixable)
+            .chain(&selection.extend_fixable)
+    });
+    let per_file_ignores = per_file_ignores.flat_map(PerFileIgnore::selectors);
+    for selector in selections.chain(per_file_ignores) {
+        if let Some(rule) = plugins
+            .rules()
+            .find(|rule| rule.code == selector.as_str() || rule.name == selector.as_str())
+        {
+            warn_user_once_by_message!(
+                "`{}` is a rule of the plugin `{}`. Plugin rules are enabled by listing their plugin, and can't be selected or ignored yet; suppress their diagnostics with `# noqa` comments, or skip files with `filter_path` in the plugin",
+                selector.as_str(),
+                rule.plugin
+            );
+        }
+    }
+}
+
+/// Loads the plugins of a configuration, checking that they don't define rules that clash with
+/// Ruff's.
+fn load_plugins(specs: Vec<PluginSpec>, preview: PreviewMode) -> Result<PluginSet> {
+    if !specs.is_empty() && !preview.is_enabled() {
+        return Err(anyhow!(
+            "`lint.plugins` is a preview feature; enable preview mode with `lint.preview = true` to use plugins"
+        ));
+    }
+    let plugins = PluginSet::load(specs)?;
+    for rule in plugins.rules() {
+        if Rule::from_code(&rule.code).is_ok() {
+            return Err(anyhow!(
+                "Plugin `{}` defines a rule with code `{}`, which is already a Ruff rule",
+                rule.plugin,
+                rule.code
+            ));
+        }
+        // Ruff identifies diagnostics by rule name in some places (file-level `noqa` comments,
+        // SARIF output), so names must be unique too.
+        if Rule::from_name(rule.name).is_ok() {
+            return Err(anyhow!(
+                "Plugin `{}` defines a rule named `{}`, which is already the name of a Ruff rule",
+                rule.plugin,
+                rule.name
+            ));
+        }
+    }
+    Ok(plugins)
+}
+
 fn conflicting_import_settings(
     isort: &isort::settings::Settings,
     flake8_import_conventions: &flake8_import_conventions::settings::Settings,

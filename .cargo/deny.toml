@@ -13,7 +13,9 @@ external-default-features = "allow"
 # explicit review, including dependencies used only on other targets.
 # scripts/check-cargo-bans.py rejects stale entries.
 allow-build-scripts = [
+    "ahash",
     "alloca",
+    "allocative",
     "anyhow",
     "camino",
     "codspeed",
@@ -54,9 +56,14 @@ allow-build-scripts = [
     "serde_core",
     "serde_json",
     "stacker",
+    "starlark",
+    "starlark_map",
+    "starlark_syntax",
+    "syn",
     "terminfo",
     "thiserror",
     "tikv-jemalloc-sys",
+    "tiny-keccak",
     "typeid",
     "typenum",
     "wasm-bindgen",
@@ -73,6 +80,7 @@ allow-build-scripts = [
     "windows_x86_64_gnullvm",
     "windows_x86_64_msvc",
     "wit-bindgen",
+    "zerocopy",
     "zmij",
     "zstd-safe",
     "zstd-sys",
@@ -93,6 +101,9 @@ allow = [
     "Apache-2.0 WITH LLVM-exception",
     "BSD-2-Clause",
     "BSD-3-Clause",
+    # The Boost Software License, a permissive license like MIT. `rustyline` (a dependency of
+    # `starlark`) depends on `clipboard-win` and `error-code` on Windows.
+    "BSL-1.0",
     "CC0-1.0",
     "CDLA-Permissive-2.0",
     "ISC",

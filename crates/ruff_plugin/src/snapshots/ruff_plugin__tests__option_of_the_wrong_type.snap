@@ -1,0 +1,13 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: "load_error_with_options(&format!(\"LAYERS = option(\\\"layers\\\", default = [])\\n{RULE}calls().foreach(lambda node: None)\"),\nvec![(\"layers\".to_string(), OptionValue::String(\"app\".to_string()))],)"
+---
+Traceback (most recent call last):
+  * test.star:1, in <module>
+      LAYERS = option("layers", default = [])
+error: The option `layers` of plugin `test` must be a `list`, but the configuration sets it to a `string`
+ --> test.star:1:10
+  |
+1 | LAYERS = option("layers", default = [])
+  |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |

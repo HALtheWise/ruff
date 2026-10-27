@@ -1,0 +1,13 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: "load_error(&format!(\"{RULE}calls().filter_path(\\\"src/[\\\").foreach(lambda node: None)\"))"
+---
+Traceback (most recent call last):
+  * test.star:2, in <module>
+      calls().filter_path("src/[").foreach(lambda node: None)
+error: Invalid path pattern `src/[`: error parsing glob 'src/[': unclosed character class; missing ']'
+ --> test.star:2:1
+  |
+2 | calls().filter_path("src/[").foreach(lambda node: None)
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |

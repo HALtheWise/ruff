@@ -1,0 +1,13 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: "load_error(&format!(\"{RULE}calls().filter_name(\\\"^get$\\\").foreach(lambda node: None)\"))"
+---
+Traceback (most recent call last):
+  * test.star:2, in <module>
+      calls().filter_name("^get$").foreach(lambda node: None)
+error: `filter_name` doesn't apply to `"Call"` nodes; it filters definitions, names, attributes, parameters, keyword arguments, and imported names
+ --> test.star:2:1
+  |
+2 | calls().filter_name("^get$").foreach(lambda node: None)
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |

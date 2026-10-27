@@ -1,0 +1,13 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: "load_error(&format!(\"{RULE}nodes(\\\"Cal\\\").foreach(lambda node: None)\"))"
+---
+Traceback (most recent call last):
+  * test.star:2, in <module>
+      nodes("Cal").foreach(lambda node: None)
+error: Unknown node kind `Cal` (did you mean `Call`?)
+ --> test.star:2:1
+  |
+2 | nodes("Cal").foreach(lambda node: None)
+  | ^^^^^^^^^^^^
+  |

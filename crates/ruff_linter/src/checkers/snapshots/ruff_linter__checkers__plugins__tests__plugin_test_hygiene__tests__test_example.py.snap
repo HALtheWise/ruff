@@ -1,0 +1,36 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+TST001 Tests shouldn't sleep; wait for a condition or use a fake clock
+ --> test_example.py:8:5
+  |
+7 | def test_sleeps():
+8 |     time.sleep(1)
+  |     ^^^^^^^^^^^^^
+9 |     assert True
+  |
+
+TST002 `test_asserts_nothing` doesn't assert anything
+  --> test_example.py:12:5
+   |
+12 | def test_asserts_nothing():
+   |     ^^^^^^^^^^^^^^^^^^^^
+13 |     value = 1 + 1
+14 |     print(value)
+   |
+
+TST003 Explain why the test is skipped with `reason=`
+  --> test_example.py:28:2
+   |
+28 | @pytest.mark.skip()
+   |  ^^^^^^^^^^^^^^^^^^
+29 | def test_skipped_without_reason():
+30 |     assert False
+   |
+
+TST001 Tests shouldn't sleep; wait for a condition or use a fake clock
+  --> test_example.py:39:5
+   |
+38 | def helper():
+39 |     time.sleep(1)  # TST001: rules apply to the whole file
+   |     ^^^^^^^^^^^^^

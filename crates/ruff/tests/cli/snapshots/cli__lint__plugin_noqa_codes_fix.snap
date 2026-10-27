@@ -1,0 +1,30 @@
+---
+source: crates/ruff/tests/cli/lint.rs
+info:
+  program: ruff
+  args:
+    - check
+    - "--no-cache"
+    - "--output-format"
+    - concise
+    - "--fix"
+    - "--diff"
+    - app.py
+---
+success: false
+exit_code: 1
+----- stdout -----
+--- app.py
++++ app.py
+@@ -2,5 +2,5 @@
+ import requests
+ 
+ requests.get("https://example.com")  # noqa: HTTP001
+-requests.get("https://example.com")  # noqa: HTTP001, E501
+-requests.get("https://example.com", timeout=5)  # noqa: HTTP001
++requests.get("https://example.com")  # noqa: HTTP001
++requests.get("https://example.com", timeout=5)
+
+Would fix 2 errors.
+
+----- stderr -----

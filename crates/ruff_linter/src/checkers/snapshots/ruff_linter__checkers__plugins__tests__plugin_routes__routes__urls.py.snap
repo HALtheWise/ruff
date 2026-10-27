@@ -1,0 +1,23 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+WEB001 `orders/` is already routed on line 6
+  --> urls.py:9:10
+   |
+ 7 |     path("orders/<int:id>/", views.order),
+ 8 |     path("customers/", views.customers),
+ 9 |     path("orders/", views.legacy_orders),
+   |          ^^^^^^^^^
+10 |     re_path(r"^customers/$", views.customers),
+11 |     path(route="customers/", view=views.customers),
+   |
+
+WEB001 `customers/` is already routed on line 8
+  --> urls.py:11:16
+   |
+ 9 |     path("orders/", views.legacy_orders),
+10 |     re_path(r"^customers/$", views.customers),
+11 |     path(route="customers/", view=views.customers),
+   |                ^^^^^^^^^^^^
+12 | ]
+   |

@@ -65,6 +65,7 @@ use ruff_source_file::{OneIndexed, SourceFile, SourceFileBuilder, SourceRow};
 use ruff_text_size::{Ranged, TextRange, TextSize};
 
 use crate::checkers::ast::annotation::AnnotationContext;
+use crate::checkers::plugins::PluginHost;
 use crate::docstrings::extraction::ExtractionTarget;
 use crate::importer::{ImportRequest, Importer, ResolutionError};
 use crate::noqa::NoqaMapping;
@@ -250,6 +251,8 @@ pub(crate) struct Checker<'a> {
     /// Errors collected by the `semantic_checker`.
     semantic_errors: RefCell<Vec<SemanticSyntaxError>>,
     context: &'a LintContext<'a>,
+    /// The rules defined by Starlark plugins, if any apply to this file.
+    plugins: Option<ruff_plugin::FileRun<'a>>,
 }
 
 impl<'a> Checker<'a> {
@@ -307,6 +310,13 @@ impl<'a> Checker<'a> {
             semantic_checker: SemanticSyntaxChecker::new(),
             semantic_errors: RefCell::default(),
             context,
+            plugins: settings.plugins.start_file(
+                path,
+                match module.source {
+                    ModuleSource::Path(module_path) => Some(module_path),
+                    ModuleSource::File(_) => None,
+                },
+            ),
         }
     }
 }
@@ -1333,6 +1343,12 @@ impl<'a> Visitor<'a> for Checker<'a> {
             _ => {}
         }
 
+        // Plugins see each node before its children, so that the checks that a plugin registers
+        // for a node (like a function) see the nodes inside it.
+        if let Some(plugins) = &self.plugins {
+            plugins.visit_stmt(stmt, &PluginHost::new(self));
+        }
+
         // Step 2: Traversal
         match stmt {
             Stmt::FunctionDef(
@@ -1866,6 +1882,10 @@ impl<'a> Visitor<'a> for Checker<'a> {
                 ExprContext::Invalid => {}
             },
             _ => {}
+        }
+
+        if let Some(plugins) = &self.plugins {
+            plugins.visit_expr(expr, &PluginHost::new(self));
         }
 
         // Step 2: Traversal
@@ -3630,6 +3650,13 @@ pub(crate) fn check_ast(
     checker.analyze.scopes.push(ScopeId::global());
     analyze::deferred_scopes(&checker);
 
+    if let Some(plugins) = checker.plugins.take() {
+        let host = PluginHost::new(&checker);
+        plugins.visit_comments(indexer.comment_ranges().iter().copied(), &host);
+        let (findings, errors) = plugins.finish(&host);
+        context.report_plugin_results(findings, errors);
+    }
+
     let Checker {
         semantic_errors, ..
     } = checker;
@@ -3768,6 +3795,12 @@ impl<'a> LintContext<'a> {
     #[inline]
     pub(crate) fn iter_enabled_rules(&self) -> impl Iterator<Item = Rule> + '_ {
         self.rules.iter_enabled()
+    }
+
+    /// Adds a diagnostic that doesn't come from one of ruff's own rules, such as one from a
+    /// plugin rule.
+    pub(crate) fn push_diagnostic(&self, diagnostic: Diagnostic) {
+        self.diagnostics.borrow_mut().push(diagnostic);
     }
 
     #[inline]

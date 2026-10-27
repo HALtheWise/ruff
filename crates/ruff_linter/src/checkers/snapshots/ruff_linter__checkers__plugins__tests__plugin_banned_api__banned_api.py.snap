@@ -1,0 +1,53 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+BAN001 `pickle.loads` is banned: Unpickling untrusted data can execute arbitrary code; use `acme.serde.loads`.
+  --> banned_api.py:12:1
+   |
+12 | pickle.loads(b"")
+   | ^^^^^^^^^^^^
+13 | unpickle(b"")
+14 | y.load("")
+   |
+
+BAN001 `pickle.loads` is banned: Unpickling untrusted data can execute arbitrary code; use `acme.serde.loads`.
+  --> banned_api.py:13:1
+   |
+12 | pickle.loads(b"")
+13 | unpickle(b"")
+   | ^^^^^^^^
+14 | y.load("")
+15 | y.safe_load("")  # OK
+   |
+
+BAN001 `yaml.load` is banned: Use `yaml.safe_load`, which can't construct arbitrary objects.
+  --> banned_api.py:14:1
+   |
+12 | pickle.loads(b"")
+13 | unpickle(b"")
+14 | y.load("")
+   | ^^^^^^
+15 | y.safe_load("")  # OK
+16 | datetime.utcnow()
+   |
+
+BAN001 `datetime.datetime.utcnow` is banned: `utcnow()` returns a naive datetime; use `datetime.now(UTC)`.
+  --> banned_api.py:16:1
+   |
+14 | y.load("")
+15 | y.safe_load("")  # OK
+16 | datetime.utcnow()
+   | ^^^^^^^^^^^^^^^
+17 | datetime.now()  # OK
+18 | subprocess.run(["ls"])
+   |
+
+BAN001 `subprocess.run` is banned: Use `acme.proc.run`, which logs and enforces timeouts.
+  --> banned_api.py:18:1
+   |
+16 | datetime.utcnow()
+17 | datetime.now()  # OK
+18 | subprocess.run(["ls"])
+   | ^^^^^^^^^^^^^^
+19 | loads(b"")  # OK: a local function
+   |

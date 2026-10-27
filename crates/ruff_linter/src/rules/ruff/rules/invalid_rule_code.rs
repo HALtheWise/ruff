@@ -10,6 +10,7 @@ use crate::noqa::{Codes, NoqaDirectives};
 use crate::preview::is_file_level_invalid_rule_code_enabled;
 use crate::registry::Rule;
 use crate::rule_redirects::get_redirect_target;
+use crate::settings::LinterSettings;
 use crate::{AlwaysFixableViolation, Edit, Fix};
 
 #[derive(Debug, PartialEq, Eq)]
@@ -94,12 +95,12 @@ pub(crate) fn invalid_noqa_code(
     file_noqa_directives: &FileNoqaDirectives,
     noqa_directives: &NoqaDirectives,
     locator: &Locator,
-    external: &[String],
 ) {
+    let settings = context.settings();
     let check_codes = |codes: &Codes<'_>| {
         let all_valid = codes
             .iter()
-            .all(|code| code_is_valid(code.as_str(), external));
+            .all(|code| code_is_valid(code.as_str(), settings));
 
         if all_valid {
             return;
@@ -107,7 +108,7 @@ pub(crate) fn invalid_noqa_code(
 
         let (valid_codes, invalid_codes): (Vec<_>, Vec<_>) = codes
             .iter()
-            .partition(|&code| code_is_valid(code.as_str(), external));
+            .partition(|&code| code_is_valid(code.as_str(), settings));
 
         if valid_codes.is_empty() {
             all_codes_invalid_diagnostic(codes, invalid_codes, locator, context);
@@ -132,9 +133,11 @@ pub(crate) fn invalid_noqa_code(
     }
 }
 
-pub(crate) fn code_is_valid(code: &str, external: &[String]) -> bool {
+/// Whether `code` is the code of one of Ruff's rules, of a plugin rule, or of an external rule.
+pub(crate) fn code_is_valid(code: &str, settings: &LinterSettings) -> bool {
     Rule::from_code(get_redirect_target(code).unwrap_or(code)).is_ok()
-        || external.iter().any(|ext| code.starts_with(ext))
+        || settings.plugins.has_rule(code)
+        || settings.external.iter().any(|ext| code.starts_with(ext))
 }
 
 fn all_codes_invalid_diagnostic(

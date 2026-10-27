@@ -1,0 +1,13 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: "load_error(\"rule(\\\"ACME001\\\", \\\"No Print\\\")\\ncalls().foreach(lambda node: None)\")"
+---
+Traceback (most recent call last):
+  * test.star:1, in <module>
+      rule("ACME001", "No Print")
+error: `No Print` is not a valid rule name; use kebab-case, like `no-print`
+ --> test.star:1:1
+  |
+1 | rule("ACME001", "No Print")
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |

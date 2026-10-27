@@ -86,6 +86,8 @@ plugins:
           - configuration.md
         Linter:
           - linter.md
+          - plugins.md
+          - plugin-api.md
         Formatter:
           - formatter.md
           - formatter/black.md

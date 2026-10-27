@@ -79,6 +79,8 @@ SECTIONS: list[Section] = [
     ),
     Section("Configuring Ruff", "configuration.md", generated=False),
     Section("Preview", "preview.md", generated=False),
+    Section("Plugins", "plugins.md", generated=False),
+    Section("Plugin API", "plugin-api.md", generated=False),
     Section("Rules", "rules.md", generated=True),
     Section("Default Rules", "default-rules.md", generated=True),
     Section("Settings", "settings.md", generated=True),

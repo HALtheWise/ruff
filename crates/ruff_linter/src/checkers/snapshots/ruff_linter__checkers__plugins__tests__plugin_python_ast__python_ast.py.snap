@@ -1,0 +1,222 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+AST003 `a` has no annotation
+ --> python_ast.py:4:14
+  |
+4 | def classify(a, b, c: int, *args, key=None, **kwargs):
+  |              ^
+5 |     if a:
+6 |         return 1
+  |
+
+AST003 `b` has no annotation
+ --> python_ast.py:4:17
+  |
+4 | def classify(a, b, c: int, *args, key=None, **kwargs):
+  |                 ^
+5 |     if a:
+6 |         return 1
+  |
+
+AST003 `args` has no annotation
+ --> python_ast.py:4:28
+  |
+4 | def classify(a, b, c: int, *args, key=None, **kwargs):
+  |                            ^^^^^
+5 |     if a:
+6 |         return 1
+  |
+
+AST003 `key` has no annotation
+ --> python_ast.py:4:35
+  |
+4 | def classify(a, b, c: int, *args, key=None, **kwargs):
+  |                                   ^^^^^^^^
+5 |     if a:
+6 |         return 1
+  |
+
+AST003 `kwargs` has no annotation
+ --> python_ast.py:4:45
+  |
+4 | def classify(a, b, c: int, *args, key=None, **kwargs):
+  |                                             ^^^^^^^^
+5 |     if a:
+6 |         return 1
+  |
+
+AST001 `if a` has an `elif` or `else`: elif b:
+        return 2
+    else:
+        return 3
+ --> python_ast.py:5:8
+  |
+4 | def classify(a, b, c: int, *args, key=None, **kwargs):
+5 |     if a:
+  |        ^
+6 |         return 1
+7 |     elif b:
+  |
+
+AST001 `if b` has an `elif` or `else`: return 3
+ --> python_ast.py:7:10
+  |
+5 |     if a:
+6 |         return 1
+7 |     elif b:
+  |          ^
+8 |         return 2
+9 |     else:
+  |
+
+AST003 `task` has no annotation
+  --> python_ast.py:13:9
+   |
+13 | def run(task):
+   |         ^^^^
+14 |     task(1, debug=True)
+15 |     task(debug=True)
+   |
+
+AST002 [*] Remove `debug=True`
+  --> python_ast.py:14:13
+   |
+13 | def run(task):
+14 |     task(1, debug=True)
+   |             ^^^^^^^^^^
+15 |     task(debug=True)
+16 |     task(debug=False, retries=5)
+   |
+help: Remove the argument
+   |
+13 | def run(task):
+   -     task(1, debug=True)
+14 +     task(1)
+15 |     task(debug=True)
+   |
+
+AST002 [*] Remove `debug=True`
+  --> python_ast.py:15:10
+   |
+13 | def run(task):
+14 |     task(1, debug=True)
+15 |     task(debug=True)
+   |          ^^^^^^^^^^
+16 |     task(debug=False, retries=5)
+17 |     task(retries=-1)
+   |
+help: Remove the argument
+   |
+14 |     task(1, debug=True)
+   -     task(debug=True)
+15 +     task()
+16 |     task(debug=False, retries=5)
+   |
+
+AST002 [*] Remove `debug=False`
+  --> python_ast.py:16:10
+   |
+14 |     task(1, debug=True)
+15 |     task(debug=True)
+16 |     task(debug=False, retries=5)
+   |          ^^^^^^^^^^^
+17 |     task(retries=-1)
+18 |     task(retries=2)  # OK
+   |
+help: Remove the argument
+   |
+15 |     task(debug=True)
+   -     task(debug=False, retries=5)
+16 +     task(retries=5)
+17 |     task(retries=-1)
+   |
+
+AST006 Name this retry count: 5
+  --> python_ast.py:16:23
+   |
+14 |     task(1, debug=True)
+15 |     task(debug=True)
+16 |     task(debug=False, retries=5)
+   |                       ^^^^^^^^^
+17 |     task(retries=-1)
+18 |     task(retries=2)  # OK
+   |
+
+AST006 Name this retry count: -1
+  --> python_ast.py:17:10
+   |
+15 |     task(debug=True)
+16 |     task(debug=False, retries=5)
+17 |     task(retries=-1)
+   |          ^^^^^^^^^^
+18 |     task(retries=2)  # OK
+   |
+
+AST005 [*] Handlers should be traced
+  --> python_ast.py:22:9
+   |
+21 | class Handlers:
+22 |     def handle_login(self, request):
+   |         ^^^^^^^^^^^^
+23 |         breakpoint()
+   |
+help: Add `@trace`
+   |
+21 | class Handlers:
+22 +     @trace
+23 |     def handle_login(self, request):
+   |
+
+AST003 `request` has no annotation
+  --> python_ast.py:22:28
+   |
+21 | class Handlers:
+22 |     def handle_login(self, request):
+   |                            ^^^^^^^
+23 |         breakpoint()
+   |
+
+AST004 [*] Remove `breakpoint()`
+  --> python_ast.py:23:9
+   |
+21 | class Handlers:
+22 |     def handle_login(self, request):
+23 |         breakpoint()
+   |         ^^^^^^^^^^^^
+24 |
+25 |     @trace
+   |
+help: Remove the call
+   |
+22 |     def handle_login(self, request):
+   -         breakpoint()
+23 +         pass
+24 |
+   |
+
+AST003 `request` has no annotation
+  --> python_ast.py:26:29
+   |
+25 |     @trace
+26 |     def handle_logout(self, request):  # OK: traced
+   |                             ^^^^^^^
+27 |         breakpoint()
+28 |         return None
+   |
+
+AST004 [*] Remove `breakpoint()`
+  --> python_ast.py:27:9
+   |
+25 |     @trace
+26 |     def handle_logout(self, request):  # OK: traced
+27 |         breakpoint()
+   |         ^^^^^^^^^^^^
+28 |         return None
+   |
+help: Remove the call
+   |
+26 |     def handle_logout(self, request):  # OK: traced
+   -         breakpoint()
+27 |         return None
+   |

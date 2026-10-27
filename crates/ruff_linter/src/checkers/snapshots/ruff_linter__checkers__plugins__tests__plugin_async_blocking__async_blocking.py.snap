@@ -1,0 +1,22 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+ASY001 `db.query` blocks the event loop when called from the coroutine `handler`
+ --> async_blocking.py:8:12
+  |
+7 | async def handler(request):
+8 |     rows = db.query("SELECT 1")
+  |            ^^^^^^^^
+9 |     time.sleep(1)
+  |
+
+ASY001 `time.sleep` blocks the event loop when called from the coroutine `handler`
+  --> async_blocking.py:9:5
+   |
+ 7 | async def handler(request):
+ 8 |     rows = db.query("SELECT 1")
+ 9 |     time.sleep(1)
+   |     ^^^^^^^^^^
+10 |
+11 |     def in_thread():
+   |

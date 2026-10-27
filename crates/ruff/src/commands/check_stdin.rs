@@ -40,6 +40,7 @@ pub(crate) fn check_stdin(
             }
         }
     }
+    super::check_plugins_loaded(&resolver)?;
     let stdin = read_from_stdin()?;
     let package_root = filename.and_then(Path::parent).and_then(|path| {
         packaging::detect_package_root(path, &resolver.base_settings().linter.namespace_packages)

@@ -1,0 +1,16 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: "load_error(&format!(\"{RULE}comments(\\\"(\\\").foreach(lambda node: None)\"))"
+---
+Traceback (most recent call last):
+  * test.star:2, in <module>
+      comments("(").foreach(lambda node: None)
+error: Invalid regular expression `(`: regex parse error:
+    (
+    ^
+error: unclosed group
+ --> test.star:2:1
+  |
+2 | comments("(").foreach(lambda node: None)
+  | ^^^^^^^^^^^^^
+  |

@@ -69,7 +69,7 @@ pub fn lint_fix_toml<'a>(
         };
 
         if iterations >= MAX_ITERATIONS {
-            report_failed_to_converge_error(path, transformed.as_ref(), &diagnostics);
+            report_failed_to_converge_error(path, transformed.as_ref(), &diagnostics, settings);
             return TomlFixerResult {
                 diagnostics,
                 transformed,

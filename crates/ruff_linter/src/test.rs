@@ -10,7 +10,7 @@ use itertools::Itertools;
 use rustc_hash::FxHashMap;
 
 use ruff_db::diagnostic::render::{FullRenderer, Renderer};
-use ruff_db::diagnostic::{Diagnostic, DisplayDiagnosticConfig, Span};
+use ruff_db::diagnostic::{Diagnostic, DiagnosticId, DisplayDiagnosticConfig, Span};
 use ruff_notebook::Notebook;
 #[cfg(test)]
 use ruff_notebook::NotebookError;
@@ -377,10 +377,17 @@ Source with applied fixes:
 
     let messages = messages
         .into_iter()
-        .filter_map(|diagnostic| {
-            Rule::from_name(diagnostic.name())
-                .ok()
-                .map(|rule| (rule, diagnostic))
+        .filter_map(|diagnostic| match Rule::from_name(diagnostic.name()) {
+            Ok(rule) => Some((Some(rule), diagnostic)),
+            // Diagnostics from plugin rules have a code but no `Rule`, and neither do the
+            // errors of plugins.
+            Err(_)
+                if diagnostic.secondary_code().is_some()
+                    || diagnostic.id() == DiagnosticId::PluginError =>
+            {
+                Some((None, diagnostic))
+            }
+            Err(_) => None,
         })
         .map(|(rule, mut diagnostic)| {
             let fixable = diagnostic.fix().is_some_and(|fix| {
@@ -390,36 +397,38 @@ Source with applied fixes:
                 )
             });
 
-            match (fixable, rule.fixable()) {
-                (true, FixAvailability::Sometimes | FixAvailability::Always)
-                | (false, FixAvailability::None | FixAvailability::Sometimes) => {
-                    // Ok
-                }
-                (true, FixAvailability::None) => {
-                    panic!(
-                        "Rule {rule:?} is marked as non-fixable but it created a fix.
+            if let Some(rule) = rule {
+                match (fixable, rule.fixable()) {
+                    (true, FixAvailability::Sometimes | FixAvailability::Always)
+                    | (false, FixAvailability::None | FixAvailability::Sometimes) => {
+                        // Ok
+                    }
+                    (true, FixAvailability::None) => {
+                        panic!(
+                            "Rule {rule:?} is marked as non-fixable but it created a fix.
 Change the `Violation::FIX_AVAILABILITY` to either \
 `FixAvailability::Sometimes` or `FixAvailability::Always`"
-                    );
-                }
-                (false, FixAvailability::Always) if source_has_errors => {
-                    // Ok
-                }
-                (false, FixAvailability::Always) => {
-                    panic!(
-                        "\
+                        );
+                    }
+                    (false, FixAvailability::Always) if source_has_errors => {
+                        // Ok
+                    }
+                    (false, FixAvailability::Always) => {
+                        panic!(
+                            "\
 Rule {rule:?} is marked to always-fixable but the diagnostic has no fix.
 Either ensure you always emit a fix or change `Violation::FIX_AVAILABILITY` to either \
 `FixAvailability::Sometimes` or `FixAvailability::None`"
-                    )
+                        )
+                    }
                 }
-            }
 
-            assert!(
-                !(fixable && diagnostic.first_help_text().is_none()),
-                "Diagnostic emitted by {rule:?} is fixable but \
-                `Violation::fix_title` returns `None`"
-            );
+                assert!(
+                    !(fixable && diagnostic.first_help_text().is_none()),
+                    "Diagnostic emitted by {rule:?} is fixable but \
+                    `Violation::fix_title` returns `None`"
+                );
+            }
 
             // Not strictly necessary but adds some coverage for this code path by overriding the
             // noqa offset and the source file

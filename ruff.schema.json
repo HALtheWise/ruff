@@ -2570,6 +2570,16 @@
             }
           }
         },
+        "plugins": {
+          "description": "Lint rules defined in [Starlark](https://github.com/bazelbuild/starlark) plugins. See\n[Plugins](https://docs.astral.sh/ruff/plugins/) for how to write them.\n\nEach entry maps a plugin name to the path of the plugin's `.star` file, or to a table with\nthe file's `path` and the plugin's `options`. Paths are relative to the project root. The\nrules of every listed plugin are enabled, and can be suppressed with `# noqa` comments like\nany other rule.\n\nPlugins are a preview feature, and require [`preview`](#lint_preview) to be enabled.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "$ref": "#/definitions/PluginOptions"
+          }
+        },
         "preview": {
           "description": "Whether to enable preview mode. When preview mode is enabled, Ruff will\nuse unstable rules and fixes.",
           "type": [
@@ -2819,6 +2829,41 @@
         }
       },
       "additionalProperties": false
+    },
+    "PluginOptionValue": {
+      "description": "Any TOML value."
+    },
+    "PluginOptions": {
+      "description": "A plugin: the path to its Starlark file, or a table with the path and the plugin's options.",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "$ref": "#/definitions/PluginTable"
+        }
+      ]
+    },
+    "PluginTable": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "description": "The plugin's options, which the plugin reads with `option(...)`.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/PluginOptionValue"
+          },
+          "default": {}
+        },
+        "path": {
+          "description": "The path to the plugin's Starlark file.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path"
+      ]
     },
     "PyUpgradeOptions": {
       "description": "Options for the `pyupgrade` plugin.",

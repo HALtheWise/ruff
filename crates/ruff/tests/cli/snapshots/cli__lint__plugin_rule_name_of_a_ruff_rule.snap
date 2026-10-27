@@ -1,0 +1,18 @@
+---
+source: crates/ruff/tests/cli/lint.rs
+info:
+  program: ruff
+  args:
+    - check
+    - "--no-cache"
+    - "--output-format"
+    - concise
+    - app.py
+---
+success: false
+exit_code: 2
+----- stdout -----
+
+----- stderr -----
+ruff failed
+  Cause: Plugin `http` defines a rule named `request-without-timeout`, which is already the name of a Ruff rule

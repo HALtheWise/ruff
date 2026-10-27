@@ -1,0 +1,31 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+ARCH001 `app.domain.model` is in layer `app.domain`, so it can't import `app.services.billing.charge` from the higher layer `app.services`
+ --> model.py:3:1
+  |
+1 | import json  # OK: not in any layer
+2 | from app.domain import values  # OK: same layer
+3 | from app.services.billing import charge  # ARCH001
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 | import app.api.views  # ARCH001
+  |
+
+ARCH001 `app.domain.model` is in layer `app.domain`, so it can't import `app.api.views` from the higher layer `app.api`
+ --> model.py:4:1
+  |
+2 | from app.domain import values  # OK: same layer
+3 | from app.services.billing import charge  # ARCH001
+4 | import app.api.views  # ARCH001
+  | ^^^^^^^^^^^^^^^^^^^^
+5 |
+6 | from ..services import billing  # ARCH001: relative imports are resolved
+  |
+
+ARCH001 `app.domain.model` is in layer `app.domain`, so it can't import `app.services.billing` from the higher layer `app.services`
+ --> model.py:6:1
+  |
+4 | import app.api.views  # ARCH001
+5 |
+6 | from ..services import billing  # ARCH001: relative imports are resolved
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

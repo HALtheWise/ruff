@@ -253,6 +253,9 @@ pub struct LinterSettings {
     pub typing_extensions: bool,
     pub future_annotations: bool,
 
+    /// Lint rules defined in Starlark files.
+    pub plugins: ruff_plugin::PluginSet,
+
     // Plugins
     pub flake8_annotations: flake8_annotations::settings::Settings,
     pub flake8_bandit: flake8_bandit::settings::Settings,
@@ -316,6 +319,7 @@ impl Display for LinterSettings {
                 self.task_tags | array,
                 self.typing_modules | array,
                 self.typing_extensions,
+                self.plugins,
             ]
         }
         writeln!(f, "\n# Linter Plugins")?;
@@ -849,6 +853,7 @@ impl LinterSettings {
             extension: ExtensionMapping::default(),
             typing_extensions: true,
             future_annotations: false,
+            plugins: ruff_plugin::PluginSet::default(),
         }
     }
 

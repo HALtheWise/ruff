@@ -1,0 +1,21 @@
+---
+source: crates/ruff/tests/cli/lint.rs
+info:
+  program: ruff
+  args:
+    - check
+    - "--no-cache"
+    - "--output-format"
+    - concise
+    - app.py
+---
+success: false
+exit_code: 1
+----- stdout -----
+app.py:1:8: unused-import: [*] `requests` imported but unused
+Found 1 error.
+[*] 1 fixable with `--fix`.
+
+----- stderr -----
+warning: Unknown rule selector `HTTP001` in `ignore` from `[TMP]/ruff.toml`
+warning: `HTTP001` is a rule of the plugin `http`. Plugin rules are enabled by listing their plugin, and can't be selected or ignored yet; suppress their diagnostics with `# noqa` comments, or skip files with `filter_path` in the plugin

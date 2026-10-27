@@ -1,0 +1,18 @@
+---
+source: crates/ruff/tests/cli/lint.rs
+info:
+  program: ruff
+  args:
+    - check
+    - "--no-cache"
+    - "--output-format"
+    - concise
+    - app.py
+---
+success: false
+exit_code: 2
+----- stdout -----
+
+----- stderr -----
+ruff failed
+  Cause: `lint.plugins` is a preview feature; enable preview mode with `lint.preview = true` to use plugins

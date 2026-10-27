@@ -1,0 +1,33 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+SLOG001 Log events should be snake_case string literals, with data passed as keyword arguments
+ --> structured_logging.py:6:10
+  |
+5 | log.info("payment_failed", order_id=1)  # OK
+6 | log.info(f"payment {1} failed")
+  |          ^^^^^^^^^^^^^^^^^^^^^
+7 | log.warning("Payment failed for %s", 1)
+8 | log.error("PaymentFailed")
+  |
+
+SLOG001 Log events should be snake_case string literals, with data passed as keyword arguments
+ --> structured_logging.py:7:13
+  |
+5 | log.info("payment_failed", order_id=1)  # OK
+6 | log.info(f"payment {1} failed")
+7 | log.warning("Payment failed for %s", 1)
+  |             ^^^^^^^^^^^^^^^^^^^^^^^
+8 | log.error("PaymentFailed")
+9 | print("payment_failed")  # OK: not a logger
+  |
+
+SLOG001 Log events should be snake_case string literals, with data passed as keyword arguments
+ --> structured_logging.py:8:11
+  |
+6 | log.info(f"payment {1} failed")
+7 | log.warning("Payment failed for %s", 1)
+8 | log.error("PaymentFailed")
+  |           ^^^^^^^^^^^^^^^
+9 | print("payment_failed")  # OK: not a logger
+  |

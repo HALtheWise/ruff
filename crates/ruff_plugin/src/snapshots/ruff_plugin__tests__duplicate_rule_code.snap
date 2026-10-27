@@ -1,0 +1,13 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: "load_error(&format!(\"{RULE}{RULE}calls().foreach(lambda node: None)\"))"
+---
+Traceback (most recent call last):
+  * test.star:2, in <module>
+      R = rule("T001", "t")
+error: The plugin already defines a rule `T001` (t)
+ --> test.star:2:5
+  |
+2 | R = rule("T001", "t")
+  |     ^^^^^^^^^^^^^^^^^
+  |

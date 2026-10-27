@@ -30,6 +30,7 @@ pub(crate) fn add_noqa(
     let (mut paths, resolver) = project_files_in_path(files, pyproject_config, config_arguments)?;
     let duration = start.elapsed();
     debug!("Identified files to lint in: {duration:?}");
+    super::check_plugins_loaded(&resolver)?;
 
     // Filter out paths for file types not supported for linting
     paths.retain(|path| {

@@ -1,0 +1,5 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: load_error(RULE)
+---
+Plugin `test` doesn't check anything; register a check with `nodes(...).foreach(callback)`

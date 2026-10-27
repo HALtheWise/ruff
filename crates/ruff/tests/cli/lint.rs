@@ -1616,6 +1616,7 @@ fn value_given_to_table_key_is_not_inline_table_2() {
     - `lint.preview`
     - `lint.typing-extensions`
     - `lint.future-annotations`
+    - `lint.plugins`
 
     For more information, try '--help'.
     ");
@@ -5462,5 +5463,268 @@ fn ruff_toml_is_linted() -> Result<()> {
     "#,
     );
 
+    Ok(())
+}
+
+const HTTP_PLUGIN: &str = r#"
+TIMEOUT = rule("HTTP001", "http-request-without-timeout", fix_safety = "unsafe")
+
+def check(call):
+    if call.keyword("timeout"):
+        return
+    args = call.args()
+    fix = insert_after(args[-1], ", timeout=10") if args else None
+    TIMEOUT.report(
+        call,
+        "`{}` has no `timeout`, so it can hang forever".format(call.func().text),
+        fix = fix,
+        fix_title = "Add a timeout" if fix else None,
+    )
+
+calls("requests.*").foreach(check)
+"#;
+
+/// Plugins report diagnostics with their own codes, which `noqa` comments can suppress.
+#[test]
+fn plugin_rules() -> Result<()> {
+    let test = CliTest::with_files([
+        (
+            "ruff.toml",
+            r#"
+[lint]
+preview = true
+select = ["F401"]
+
+[lint.plugins]
+http = "lint/http.star"
+"#,
+        ),
+        ("lint/http.star", HTTP_PLUGIN),
+        (
+            "app.py",
+            r#"
+import os
+import requests
+from requests import get as fetch
+
+requests.get("https://example.com")
+fetch("https://example.com")
+fetch("https://example.com", timeout=5)
+requests.post("https://example.com")  # noqa: HTTP001
+"#,
+        ),
+    ])?;
+
+    assert_cmd_snapshot!(test.check_command().arg("app.py"));
+    assert_cmd_snapshot!(
+        "plugin_rules_fix",
+        test.check_command()
+            .args(["--fix", "--unsafe-fixes", "--diff"])
+            .arg("app.py")
+    );
+    Ok(())
+}
+
+#[test]
+fn plugins_require_preview() -> Result<()> {
+    let test = CliTest::with_files([
+        (
+            "ruff.toml",
+            r#"
+[lint.plugins]
+http = "lint/http.star"
+"#,
+        ),
+        ("lint/http.star", HTTP_PLUGIN),
+        ("app.py", "import requests\n"),
+    ])?;
+
+    assert_cmd_snapshot!(test.check_command().arg("app.py"));
+    Ok(())
+}
+
+/// Errors in plugins point at the plugin's source.
+#[test]
+fn plugin_load_error() -> Result<()> {
+    let test = CliTest::with_files([
+        (
+            "ruff.toml",
+            r#"
+[lint]
+preview = true
+
+[lint.plugins]
+http = "lint/http.star"
+"#,
+        ),
+        (
+            "lint/http.star",
+            r#"
+TIMEOUT = rule("HTTP001", "http-request-without-timeout")
+cals("requests.*").foreach(lambda call: TIMEOUT.report(call, "No timeout"))
+"#,
+        ),
+        ("app.py", "import requests\n"),
+    ])?;
+
+    assert_cmd_snapshot!(test.check_command().arg("app.py"));
+    Ok(())
+}
+
+/// Errors raised by a plugin's callbacks are reported as diagnostics, with a traceback and a hint
+/// for common mistakes, and the failing callback isn't called again for the rest of the file.
+#[test]
+fn plugin_callback_error() -> Result<()> {
+    let test = CliTest::with_files([
+        (
+            "ruff.toml",
+            r#"
+[lint]
+preview = true
+
+[lint.plugins]
+http = "lint/http.star"
+"#,
+        ),
+        (
+            "lint/http.star",
+            r#"
+TIMEOUT = rule("HTTP001", "http-request-without-timeout")
+
+def check(call):
+    # `func` holds a node, so its field is a method: this should be `call.func().attr`.
+    if call.func.attr == "get":
+        TIMEOUT.report(call, "No timeout")
+
+calls("requests.*").foreach(check)
+"#,
+        ),
+        (
+            "app.py",
+            r#"
+import requests
+
+requests.get("https://example.com")
+requests.post("https://example.com")
+"#,
+        ),
+    ])?;
+
+    assert_cmd_snapshot!(
+        test.command()
+            .args(["check", "--no-cache", "--output-format", "full"])
+            .arg("app.py")
+    );
+    Ok(())
+}
+
+/// `noqa` comments that name plugin rules are valid (RUF102), and unused if the plugin doesn't
+/// report a diagnostic on their line (RUF100).
+#[test]
+fn plugin_noqa_codes() -> Result<()> {
+    let test = CliTest::with_files([
+        (
+            "ruff.toml",
+            r#"
+[lint]
+preview = true
+select = ["RUF100", "RUF102"]
+
+[lint.plugins]
+http = "lint/http.star"
+"#,
+        ),
+        ("lint/http.star", HTTP_PLUGIN),
+        (
+            "app.py",
+            r#"
+import requests
+
+requests.get("https://example.com")  # noqa: HTTP001
+requests.get("https://example.com")  # noqa: HTTP001, E501
+requests.get("https://example.com", timeout=5)  # noqa: HTTP001
+"#,
+        ),
+    ])?;
+
+    assert_cmd_snapshot!(test.check_command().arg("app.py"));
+    assert_cmd_snapshot!(
+        "plugin_noqa_codes_fix",
+        test.check_command().args(["--fix", "--diff"]).arg("app.py")
+    );
+    Ok(())
+}
+
+/// Plugin rules can't reuse the names of Ruff's rules, which some outputs identify rules by.
+#[test]
+fn plugin_rule_name_of_a_ruff_rule() -> Result<()> {
+    let test = CliTest::with_files([
+        (
+            "ruff.toml",
+            r#"
+[lint]
+preview = true
+
+[lint.plugins]
+http = "lint/http.star"
+"#,
+        ),
+        (
+            "lint/http.star",
+            r#"
+TIMEOUT = rule("HTTP001", "request-without-timeout")
+calls("requests.*").foreach(lambda call: TIMEOUT.report(call, "No timeout"))
+"#,
+        ),
+        ("app.py", "import requests\n"),
+    ])?;
+
+    assert_cmd_snapshot!(test.check_command().arg("app.py"));
+    Ok(())
+}
+
+/// A plugin that fails to load fails `ruff check`, but not `ruff format`, which doesn't use
+/// plugins.
+#[test]
+fn plugin_load_error_only_fails_linting() -> Result<()> {
+    let test = CliTest::with_files([
+        (
+            "ruff.toml",
+            r#"
+[lint]
+preview = true
+
+[lint.plugins]
+http = "lint/http.star"
+"#,
+        ),
+        ("lint/http.star", "cals()\n"),
+        ("app.py", "import requests\n"),
+    ])?;
+
+    assert_cmd_snapshot!(test.format_command().arg("app.py"));
+    Ok(())
+}
+
+/// Plugin rules can't be selected or ignored yet, and Ruff says so.
+#[test]
+fn plugin_rule_selectors() -> Result<()> {
+    let test = CliTest::with_files([
+        (
+            "ruff.toml",
+            r#"
+[lint]
+preview = true
+ignore = ["HTTP001"]
+
+[lint.plugins]
+http = "lint/http.star"
+"#,
+        ),
+        ("lint/http.star", HTTP_PLUGIN),
+        ("app.py", "import requests\n"),
+    ])?;
+
+    assert_cmd_snapshot!(test.check_command().arg("app.py"));
     Ok(())
 }

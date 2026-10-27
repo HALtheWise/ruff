@@ -1,0 +1,19 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+DJM001 The model `Order` doesn't define `__str__`
+ --> django_models.py:5:7
+  |
+5 | class Order(models.Model):
+  |       ^^^^^
+6 |     total = models.IntegerField()
+  |
+
+DJM001 The model `WithMeta` doesn't define `__str__`
+  --> django_models.py:25:7
+   |
+25 | class WithMeta(models.Model):
+   |       ^^^^^^^^
+26 |     class Meta:
+27 |         ordering = ["id"]
+   |

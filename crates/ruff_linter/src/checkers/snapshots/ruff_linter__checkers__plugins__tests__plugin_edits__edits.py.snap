@@ -1,0 +1,299 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+EDIT001 [*] `drop_module` is marked for deletion
+ --> edits.py:1:12
+  |
+1 | import os, drop_module
+  |            ^^^^^^^^^^^
+2 | from os import path, drop_name
+3 | import drop_whole
+  |
+help: Delete it
+  |
+  - import os, drop_module
+1 + import os
+2 | from os import path, drop_name
+  |
+
+EDIT001 [*] `drop_name` is marked for deletion
+ --> edits.py:2:22
+  |
+1 | import os, drop_module
+2 | from os import path, drop_name
+  |                      ^^^^^^^^^
+3 | import drop_whole
+  |
+help: Delete it
+  |
+1 | import os, drop_module
+  - from os import path, drop_name
+2 + from os import path
+3 | import drop_whole
+  |
+
+EDIT001 [*] `drop_whole` is marked for deletion
+ --> edits.py:3:8
+  |
+1 | import os, drop_module
+2 | from os import path, drop_name
+3 | import drop_whole
+  |        ^^^^^^^^^^
+help: Delete it
+  |
+2 | from os import path, drop_name
+  - import drop_whole
+3 |
+  |
+
+EDIT001 [*] `remove_me()` is marked for deletion
+ --> edits.py:7:5
+  |
+6 | def f():
+7 |     remove_me()
+  |     ^^^^^^^^^^^
+help: Delete it
+  |
+6 | def f():
+  -     remove_me()
+7 +     pass
+8 |
+  |
+
+EDIT001 [*] `remove_me()` is marked for deletion
+  --> edits.py:13:5
+   |
+11 |     pass
+12 | except ValueError:
+13 |     remove_me()
+   |     ^^^^^^^^^^^
+14 |
+15 | match x:
+   |
+help: Delete it
+   |
+12 | except ValueError:
+   -     remove_me()
+13 +     pass
+14 |
+   |
+
+EDIT001 [*] `remove_me()` is marked for deletion
+  --> edits.py:17:9
+   |
+15 | match x:
+16 |     case 1:
+17 |         remove_me()
+   |         ^^^^^^^^^^^
+18 |
+19 | if a:
+   |
+help: Delete it
+   |
+16 |     case 1:
+   -         remove_me()
+17 +         pass
+18 |
+   |
+
+EDIT001 [*] `remove_me()` is marked for deletion
+  --> edits.py:22:5
+   |
+20 |     pass
+21 | elif b:
+22 |     remove_me()
+   |     ^^^^^^^^^^^
+23 |
+24 | a = 1; remove_me(); b = 2
+   |
+help: Delete it
+   |
+21 | elif b:
+   -     remove_me()
+22 +     pass
+23 |
+   |
+
+EDIT001 [*] `remove_me()` is marked for deletion
+  --> edits.py:24:8
+   |
+22 |     remove_me()
+23 |
+24 | a = 1; remove_me(); b = 2
+   |        ^^^^^^^^^^^
+25 |
+26 | g(1, drop_arg, 2)
+   |
+help: Delete it
+   |
+23 |
+   - a = 1; remove_me(); b = 2
+24 + a = 1; b = 2
+25 |
+   |
+
+EDIT001 [*] `drop_arg` is marked for deletion
+  --> edits.py:26:6
+   |
+24 | a = 1; remove_me(); b = 2
+25 |
+26 | g(1, drop_arg, 2)
+   |      ^^^^^^^^
+27 | g(1, drop_kw=1)
+28 | t = (drop_elt, 1)
+   |
+help: Delete it
+   |
+25 |
+   - g(1, drop_arg, 2)
+26 + g(1, 2)
+27 | g(1, drop_kw=1)
+   |
+
+EDIT001 [*] `drop_kw=1` is marked for deletion
+  --> edits.py:27:6
+   |
+26 | g(1, drop_arg, 2)
+27 | g(1, drop_kw=1)
+   |      ^^^^^^^^^
+28 | t = (drop_elt, 1)
+29 | t = 1, drop_elt
+   |
+help: Delete it
+   |
+26 | g(1, drop_arg, 2)
+   - g(1, drop_kw=1)
+27 + g(1)
+28 | t = (drop_elt, 1)
+   |
+
+EDIT001 [*] `drop_elt` is marked for deletion
+  --> edits.py:28:6
+   |
+26 | g(1, drop_arg, 2)
+27 | g(1, drop_kw=1)
+28 | t = (drop_elt, 1)
+   |      ^^^^^^^^
+29 | t = 1, drop_elt
+30 | s = {drop_elt}
+   |
+help: Delete it
+   |
+27 | g(1, drop_kw=1)
+   - t = (drop_elt, 1)
+28 + t = (1,)
+29 | t = 1, drop_elt
+   |
+
+EDIT001 [*] `drop_elt` is marked for deletion
+  --> edits.py:29:8
+   |
+27 | g(1, drop_kw=1)
+28 | t = (drop_elt, 1)
+29 | t = 1, drop_elt
+   |        ^^^^^^^^
+30 | s = {drop_elt}
+   |
+help: Delete it
+   |
+28 | t = (drop_elt, 1)
+   - t = 1, drop_elt
+29 + t = 1,
+30 | s = {drop_elt}
+   |
+
+EDIT001 [*] `drop_elt` is marked for deletion
+  --> edits.py:30:6
+   |
+28 | t = (drop_elt, 1)
+29 | t = 1, drop_elt
+30 | s = {drop_elt}
+   |      ^^^^^^^^
+31 |
+32 | g(1, pair_a=1, pair_b=2)
+   |
+help: Delete it
+   |
+29 | t = 1, drop_elt
+   - s = {drop_elt}
+30 + s = set()
+31 |
+   |
+
+EDIT001 [*] Remove the `pair_` arguments
+  --> edits.py:32:1
+   |
+30 | s = {drop_elt}
+31 |
+32 | g(1, pair_a=1, pair_b=2)
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+31 |
+   - g(1, pair_a=1, pair_b=2)
+32 + g(1, )
+33 |
+   |
+
+EDIT002 [*] Set up first
+  --> edits.py:36:5
+   |
+35 | def h():
+36 |     before()
+   |     ^^^^^^^^
+37 |     after()
+   |
+   |
+35 | def h():
+   -     before()
+36 +     setup()
+37 +     done()
+38 |     after()
+   |
+
+EDIT002 [*] Tear down after
+  --> edits.py:37:5
+   |
+35 | def h():
+36 |     before()
+37 |     after()
+   |     ^^^^^^^
+   |
+36 |     before()
+   -     after()
+37 +     done()
+38 +     if ready:
+39 +         teardown()
+40 |
+   |
+
+EDIT002 [*] Flush after
+  --> edits.py:40:7
+   |
+40 | if c: inline()
+   |       ^^^^^^^^
+41 |
+42 | # Deleting a key from a dictionary would break it, so the plugin fails (and isn't called for
+   |
+   |
+39 |
+   - if c: inline()
+40 + if c: done(); flush()
+41 |
+   |
+
+plugin-error: Plugin `edits` failed: `delete` can't remove this `Name` from its `Dict` without breaking the code; replace the `Dict` (or part of it) instead (at ./resources/test/fixtures/plugins/edits.star:9)
+  --> edits.py:44:6
+   |
+42 | # Deleting a key from a dictionary would break it, so the plugin fails (and isn't called for
+43 | # the rest of the file).
+44 | d = {drop_key: 1}
+   |      ^^^^^^^^
+info: Traceback (most recent call last):
+  * ./resources/test/fixtures/plugins/edits.star:9, in drop
+      DROP.report(node, "`{}` is marked for deletion".format(node.text), fix = dele...
+error: `delete` can't remove this `Name` from its `Dict` without breaking the code; replace the `Dict` (or part of it) instead
+ --> ./resources/test/fixtures/plugins/edits.star:9:78
+  |
+9 |     DROP.report(node, "`{}` is marked for deletion".format(node.text), fix = delete(node), fix_title = "Delete it")
+  |                                                                              ^^^^^^^^^^^^
+  |

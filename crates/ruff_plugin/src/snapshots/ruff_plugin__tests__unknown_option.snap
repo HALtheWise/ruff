@@ -1,0 +1,9 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: "load_error_with_options(&format!(\"LAYERS = option(\\\"layers\\\", default = [], help = \\\"Module prefixes, from highest to lowest.\\\")\\nSTRICT = option(\\\"strict\\\", default = False)\\n{RULE}calls().foreach(lambda node: None)\"),\nvec![(\"layres\".to_string(), OptionValue::Array(Vec::new()))],)"
+---
+Plugin `test` has no option named `layres` (did you mean `layers`?)
+
+Its options are:
+  layers: Module prefixes, from highest to lowest.
+  strict

@@ -203,6 +203,13 @@ impl RuffSettingsIndex {
                     ) {
                         Ok(settings) => {
                             tracing::debug!("Loaded settings from: `{}`", pyproject.display());
+                            if let Some(error) = settings.linter.plugins.error() {
+                                tracing::error!(
+                                    "Plugins failed to load for {}, so Ruff lints without them: {error}",
+                                    pyproject.display()
+                                );
+                                has_error = true;
+                            }
                             respect_gitignore = Some(settings.file_resolver.respect_gitignore);
 
                             index.insert(
@@ -340,6 +347,13 @@ impl RuffSettingsIndex {
                                     pyproject.display(),
                                     directory.display()
                                 );
+                                if let Some(error) = settings.linter.plugins.error() {
+                                    tracing::error!(
+                                        "Plugins failed to load for {}, so Ruff lints without them: {error}",
+                                        pyproject.display()
+                                    );
+                                    has_error.store(true, Ordering::Relaxed);
+                                }
                                 index.write().unwrap().insert(
                                     directory,
                                     Arc::new(RuffSettings {

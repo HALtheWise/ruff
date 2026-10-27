@@ -1,0 +1,97 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+FUN001 Call on line 3: func=trace args=["a", 1] keywords=["name"] nested_calls=["print", "len"]
+ --> starlark_functions.py:3:1
+  |
+1 | from acme import trace
+2 |
+3 | trace("a", 1, name=print(len("x")))
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 | trace()
+5 | trace("HELLO WORLD")
+  |
+
+plugin-error: Plugin `starlark-functions` failed: Object of type `Call` has no attribute `body` (at ./resources/test/fixtures/plugins/starlark_functions.star:39)
+ --> starlark_functions.py:3:1
+  |
+1 | from acme import trace
+2 |
+3 | trace("a", 1, name=print(len("x")))
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 | trace()
+5 | trace("HELLO WORLD")
+  |
+info: error: Object of type `Call` has no attribute `body`
+  --> ./resources/test/fixtures/plugins/starlark_functions.star:39:42
+   |
+39 | calls("acme.trace").foreach(lambda call: call.body())
+   |                                          ^^^^^^^^^^^
+   |
+
+FUN002 The last argument is `1`
+ --> starlark_functions.py:3:12
+  |
+1 | from acme import trace
+2 |
+3 | trace("a", 1, name=print(len("x")))
+  |            ^
+4 | trace()
+5 | trace("HELLO WORLD")
+  |
+
+FUN001 Call on line 4: func=trace args=[] keywords=[] nested_calls=[]
+ --> starlark_functions.py:4:1
+  |
+3 | trace("a", 1, name=print(len("x")))
+4 | trace()
+  | ^^^^^^^
+5 | trace("HELLO WORLD")
+6 | trace()
+  |
+
+FUN001 Call on line 5: func=trace args=["HELLO WORLD"] keywords=[] nested_calls=[]
+ --> starlark_functions.py:5:1
+  |
+3 | trace("a", 1, name=print(len("x")))
+4 | trace()
+5 | trace("HELLO WORLD")
+  | ^^^^^^^^^^^^^^^^^^^^
+6 | trace()
+  |
+
+FUN002 The last argument is `"HELLO WORLD"`
+ --> starlark_functions.py:5:7
+  |
+3 | trace("a", 1, name=print(len("x")))
+4 | trace()
+5 | trace("HELLO WORLD")
+  |       ^^^^^^^^^^^^^
+6 | trace()
+  |
+
+FUN004 Don't shout: `hello world`
+ --> starlark_functions.py:5:7
+  |
+3 | trace("a", 1, name=print(len("x")))
+4 | trace()
+5 | trace("HELLO WORLD")
+  |       ^^^^^^^^^^^^^
+6 | trace()
+  |
+
+FUN001 Call on line 6: func=trace args=[] keywords=[] nested_calls=[]
+ --> starlark_functions.py:6:1
+  |
+4 | trace()
+5 | trace("HELLO WORLD")
+6 | trace()
+  | ^^^^^^^
+
+FUN005 `trace()` repeats the call on line 4
+ --> starlark_functions.py:6:1
+  |
+4 | trace()
+5 | trace("HELLO WORLD")
+6 | trace()
+  | ^^^^^^^

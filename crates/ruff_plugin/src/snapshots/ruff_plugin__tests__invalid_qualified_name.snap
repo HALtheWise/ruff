@@ -1,0 +1,13 @@
+---
+source: crates/ruff_plugin/src/tests.rs
+expression: "load_error(&format!(\"{RULE}calls(\\\"requests/get\\\").foreach(lambda node: None)\"))"
+---
+Traceback (most recent call last):
+  * test.star:2, in <module>
+      calls("requests/get").foreach(lambda node: None)
+error: `requests/get` is not a qualified name like `requests.get`, or a pattern like `requests.*`
+ --> test.star:2:1
+  |
+2 | calls("requests/get").foreach(lambda node: None)
+  | ^^^^^^^^^^^^^^^^^^^^^
+  |

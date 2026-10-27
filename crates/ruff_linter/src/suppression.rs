@@ -511,7 +511,7 @@ impl Suppressions {
 
             let code_str = suppression.code.as_str();
 
-            let code_is_valid = code_is_valid(&suppression.code, &context.settings().external);
+            let code_is_valid = code_is_valid(&suppression.code, context.settings());
             let name_is_known = Rule::from_name(&suppression.code).is_ok();
             let name_is_valid = is_human_readable_names_enabled(self.preview) && name_is_known;
 

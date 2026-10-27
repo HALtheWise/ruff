@@ -1,0 +1,47 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+MIG001 [*] `acme.http.fetch` is deprecated; use `acme.http.get`
+ --> api_migration.py:3:1
+  |
+1 | from acme import http
+2 |
+3 | http.fetch("https://example.com", timeout_ms=1500)
+  | ^^^^^^^^^^
+4 | http.fetch(
+5 |     "https://example.com",
+  |
+help: Replace with `acme.http.get`
+  |
+2 |
+  - http.fetch("https://example.com", timeout_ms=1500)
+3 + http.get("https://example.com", timeout=1.5)
+4 | http.fetch(
+  |
+
+MIG001 [*] `acme.http.fetch` is deprecated; use `acme.http.get`
+ --> api_migration.py:4:1
+  |
+3 | http.fetch("https://example.com", timeout_ms=1500)
+4 | http.fetch(
+  | ^^^^^^^^^^
+5 |     "https://example.com",
+6 |     timeout_ms=250,
+  |
+help: Replace with `acme.http.get`
+  |
+3 | http.fetch("https://example.com", timeout_ms=1500)
+  - http.fetch(
+4 + http.get(
+5 |     "https://example.com",
+  -     timeout_ms=250,
+6 +     timeout=0.25,
+7 |     retries=3,
+  |
+
+MIG001 `acme.http.fetch` is deprecated; use `acme.http.get`
+  --> api_migration.py:11:1
+   |
+10 | delay = 100
+11 | http.fetch("https://example.com", timeout_ms=delay)  # No fix: the timeout isn't a literal
+   | ^^^^^^^^^^

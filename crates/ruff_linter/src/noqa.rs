@@ -1201,6 +1201,9 @@ pub(crate) struct NoqaDirectiveLine<'a> {
     pub(crate) directive: Directive<'a>,
     /// The codes that are ignored by the directive.
     pub(crate) matches: Vec<Rule>,
+    /// The codes of the plugin rules (which have no [`Rule`]) whose diagnostics the directive
+    /// ignores.
+    pub(crate) plugin_matches: Vec<String>,
     /// Whether the directive applies to `range.end`.
     pub(crate) includes_end: bool,
 }
@@ -1250,6 +1253,7 @@ impl<'a> NoqaDirectives<'a> {
                         range,
                         directive,
                         matches: Vec::new(),
+                        plugin_matches: Vec::new(),
                         includes_end: range.end() == locator.contents().text_len(),
                     });
                 }

@@ -1,0 +1,38 @@
+---
+source: crates/ruff_linter/src/checkers/plugins.rs
+---
+SLOP001 This comment narrates the code; explain why instead, or remove it
+ --> slop.py:5:1
+  |
+5 | # Step 1: load the configuration
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6 | def load_config():
+7 |     # This function loads the configuration from disk.
+  |
+
+SLOP001 This comment narrates the code; explain why instead, or remove it
+ --> slop.py:7:5
+  |
+5 | # Step 1: load the configuration
+6 | def load_config():
+7 |     # This function loads the configuration from disk.
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8 |     return {}
+  |
+
+SLOP002 `handle_event` is a placeholder; implement it or remove it
+  --> slop.py:11:5
+   |
+11 | def handle_event(event):
+   |     ^^^^^^^^^^^^
+12 |     """Handle an event."""
+13 |     ...
+   |
+
+SLOP002 `todo` is a placeholder; implement it or remove it
+  --> slop.py:16:5
+   |
+16 | def todo():
+   |     ^^^^
+17 |     raise NotImplementedError
+   |
